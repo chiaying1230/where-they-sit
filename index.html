@@ -115,6 +115,8 @@ h3{font-size:1.2rem;font-weight:700;margin:0 0 12px}
 .msg.err{align-self:flex-start;background:transparent;color:var(--soft);font-size:.9rem;padding:0 4px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 10px}
 .chip{border:2px solid var(--ai);background:var(--card);color:var(--ai);border-radius:999px;padding:4px 14px;font-size:.95rem;font-weight:700;min-height:40px}
+.rec{margin:0;padding:8px 14px;font-size:.85rem;color:var(--soft);background:var(--bg);border-bottom:3px solid var(--line);line-height:1.5}
+.rec[hidden]{display:none}
 .chip:disabled{opacity:.4;cursor:default}
 .form{display:flex;gap:8px;padding:10px 12px 12px;border-top:3px solid var(--line)}
 .form textarea{flex:1;min-width:0;resize:none;font:inherit;font-size:1rem;line-height:1.5;padding:10px 14px;border:3px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);height:52px}
@@ -252,7 +254,8 @@ function draw(){
       e.evs.map(function(v,k){return '<li><button class="ev" data-ev="'+k+'" aria-expanded="false" aria-controls="d'+k+'">'+
         '<span class="yr">'+v.y+'</span><span class="ti">'+v.t+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
         '<div class="det" id="d'+k+'" hidden><p>'+v.d+'</p></div></li>';}).join('')+
-      '</ul><div class="ask"><b>想一想</b>'+e.ask+'<div class="disc" id="disc"'+(AI.on?'':' hidden')+'><div class="dh"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="var(--aisoft)"/><rect x="9" y="12" width="22" height="18" rx="7" fill="var(--ai)"/><circle cx="15.5" cy="20.5" r="2.6" fill="var(--card)"/><circle cx="24.5" cy="20.5" r="2.6" fill="var(--card)"/><path d="M16 26 Q20 28.5 24 26" stroke="var(--card)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="20" y1="12" x2="20" y2="7" stroke="var(--ai)" stroke-width="2.4"/><circle cx="20" cy="6" r="2.6" fill="var(--me)"/></svg><div><b>和 AI 小幫手小燈討論</b><span>這題沒有標準答案，說說你的想法吧</span></div></div>'+'<div class="log" id="log" aria-live="polite"></div><div class="chips" id="chips"></div>'+'<form class="form" id="form"><label for="q" style="position:absolute;left:-9999px">我的想法</label>'+'<textarea id="q" placeholder="寫下你的想法…" maxlength="300"></textarea>'+'<button type="submit" id="send">送出</button><button type="button" class="stop" id="stop" hidden>停</button></form></div>'+'</div></section>';
+      '</ul><div class="ask"><b>想一想</b>'+e.ask+'<div class="disc" id="disc"'+(AI.on?'':' hidden')+'><div class="dh"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="var(--aisoft)"/><rect x="9" y="12" width="22" height="18" rx="7" fill="var(--ai)"/><circle cx="15.5" cy="20.5" r="2.6" fill="var(--card)"/><circle cx="24.5" cy="20.5" r="2.6" fill="var(--card)"/><path d="M16 26 Q20 28.5 24 26" stroke="var(--card)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="20" y1="12" x2="20" y2="7" stroke="var(--ai)" stroke-width="2.4"/><circle cx="20" cy="6" r="2.6" fill="var(--me)"/></svg><div><b>和 AI 小幫手小燈討論</b><span>這題沒有標準答案，說說你的想法吧</span></div></div>'+
+      '<p class="rec" id="rec" hidden></p>'+'<div class="log" id="log" aria-live="polite"></div><div class="chips" id="chips"></div>'+'<form class="form" id="form"><label for="q" style="position:absolute;left:-9999px">我的想法</label>'+'<textarea id="q" placeholder="寫下你的想法…" maxlength="300"></textarea>'+'<button type="submit" id="send">送出</button><button type="button" class="stop" id="stop" hidden>停</button></form></div>'+'</div></section>';
   } else if(page===ERAS.length+1){
     h='<section class="card"><h2>一起看一次</h2><p class="lead">一百多年來，叫法變了，位置也變了。</p><div class="recap">'+
       ERAS.map(function(e,i){return '<div class="rc"><svg viewBox="0 0 640 300" style="width:100%;height:auto">'+
@@ -306,6 +309,8 @@ document.addEventListener('keydown',function(e){
 var AI_ENDPOINT='https://where-they-sit-ai.chiaying999wen.workers.dev/';
 var AI=(function(){
   var api={on:false}, sample=null, busy=false, ctl=null, era=-1;
+  // 隨機學生代號：每次打開頁面產生一個，不含任何個人資料
+  var SID=(function(){ var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789', t=''; var a=new Uint8Array(6); (window.crypto||window.msCrypto).getRandomValues(a); for(var k=0;k<6;k++) t+=c[a[k]%c.length]; return t; })();
   var chats=ERAS.map(function(){return [];});           // 每個年代各自一段討論 [{role,text}]
   var HELLO='嗨，我是小燈！這題沒有標準答案。你先寫下自己的想法，我們一起聊聊。';
   var STORY=ERAS.map(function(e,i){return '第'+(i+1)+'個年代｜'+e.when+'｜'+e.title+'\n'+e.lead+'\n當時的叫法：'+e.word+'（'+e.wordNote+'）\n當時的想法：'+e.think+'\n事件：'+
@@ -366,7 +371,7 @@ var AI=(function(){
       return r.text.trim();
     }
     var res;
-    try{ res=await fetch(AI_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({era:i,messages:hist}),signal:signal}); }
+    try{ res=await fetch(AI_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({era:i,messages:hist,sid:SID}),signal:signal}); }
     catch(e){ throw {code: e&&e.name==='AbortError' ? 'cancelled' : 'upstream_error'}; }
     if(!res.ok) throw {code: res.status===429 ? 'rate_limited' : 'upstream_error'};
     var data=await res.json(); if(!data||!data.text) throw {code:'empty_completion'};
@@ -375,7 +380,9 @@ var AI=(function(){
   api.mount=function(){
     era = page>=1&&page<=ERAS.length ? page-1 : -1;
     if(era<0||!api.on) return;
-    $('disc').hidden=false; render();
+    $('disc').hidden=false;
+    var note=$('rec'); if(note){ note.hidden = !!sample; note.textContent='你的代號：'+SID+'。你和小燈的對話會被老師看到，用來改進教學，不會記錄你的名字。'; }
+    render();
     $('form').addEventListener('submit',function(e){ e.preventDefault(); send($('q').value); });
     $('q').addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); send(e.target.value); } });
     $('stop').onclick=function(){ if(ctl) ctl.abort(); };

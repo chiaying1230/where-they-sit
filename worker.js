@@ -1,5 +1,6 @@
 // 《他們坐在哪裡？》AI 小幫手「小燈」的後端（Cloudflare Worker）
 // 作用：保管 Claude API 金鑰，替網頁呼叫 Claude。金鑰放在 Cloudflare 的秘密變數 ANTHROPIC_API_KEY，不會出現在網頁裡。
+// 選用：秘密變數 SHEET_URL 設為 Google 試算表的 Apps Script 網址，就會把每次對話記錄到試算表。
 
 const MODEL = 'claude-haiku-4-5-20251001';
 // 只接受來自這些網站的請求（你的 GitHub Pages 網址）
@@ -88,7 +89,7 @@ function reply(body, status, origin) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
     if (!ALLOWED_ORIGINS.includes(origin)) return new Response('Forbidden', { status: 403 });
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
@@ -131,6 +132,20 @@ export default {
     if (!res.ok) return reply({ error: 'upstream', status: res.status }, 502, origin);
     const data = await res.json();
     const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    // 記錄到 Google 試算表（有設定 SHEET_URL 才會記錄；記錄失敗不影響小燈回答）
+    if (env.SHEET_URL && text) {
+      const sid = String((body && body.sid) || '').replace(/[^A-Z0-9]/g, '').slice(0, 12) || '未知';
+      const last = msgs[msgs.length - 1];
+      const row = {
+        time: new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false }),
+        sid,
+        era: ERAS[era].when.split('　')[0] + '｜' + ERAS[era].title,
+        turn: msgs.filter(m => m && m.role === 'user').length,
+        student: String(last.content || '').slice(0, MAX_CHARS),
+        reply: text,
+      };
+      ctx.waitUntil(fetch(env.SHEET_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(row) }).catch(() => {}));
+    }
     return reply({ text }, 200, origin);
   },
 };
