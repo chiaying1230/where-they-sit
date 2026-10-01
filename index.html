@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>他們坐在哪裡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FDF8F0; --card:#FFFFFF; --ink:#2B2A28; --soft:#6E6A63; --line:#E3DCD0;
+  --me:#E08A2E; --them:#5A87B8; --ok:#4E8C5B; --hl:#F4E3C4;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1B19; --card:#262421; --ink:#F2EDE5; --soft:#A9A39A; --line:#3D3934;
+  --me:#F0A452; --them:#84AEDC; --ok:#78B486; --hl:#3E3421;
+}}
+:root[data-theme="dark"]{--bg:#1C1B19;--card:#262421;--ink:#F2EDE5;--soft:#A9A39A;--line:#3D3934;--me:#F0A452;--them:#84AEDC;--ok:#78B486;--hl:#3E3421}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:19px;line-height:1.85;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:4px solid var(--ink);outline-offset:3px;border-radius:6px}
+.wrap{max-width:860px;margin:0 auto;padding:18px 18px 130px}
+
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+.bar h1{font-size:1.25rem;font-weight:700;margin:0;flex:1 1 auto}
+.dots{display:flex;gap:9px;list-style:none;margin:0;padding:0}
+.dots button{width:19px;height:19px;padding:0;border-radius:50%;border:3px solid var(--line);background:var(--card)}
+.dots button[aria-current="true"]{background:var(--me);border-color:var(--me);transform:scale(1.25)}
+.dots button.done{background:var(--line);border-color:var(--line)}
+
+.card{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:26px 24px 30px}
+.when{display:inline-block;background:var(--hl);border-radius:999px;padding:5px 18px;font-weight:700;font-size:1rem;margin-bottom:12px}
+h2{font-size:clamp(1.75rem,6vw,2.6rem);font-weight:900;line-height:1.28;margin:0 0 6px}
+.lead{font-size:clamp(1.05rem,3.4vw,1.3rem);margin:0 0 20px}
+.scene{display:block;width:100%;height:auto;background:var(--bg);border:3px solid var(--line);border-radius:16px;margin:0 0 10px}
+.cap{color:var(--soft);font-size:1rem;margin:0 0 24px;text-align:center}
+
+.word{background:var(--bg);border:3px dashed var(--line);border-radius:16px;padding:18px 20px;margin:0 0 24px;text-align:center}
+.word .t{color:var(--soft);font-size:1rem}
+.word .w{font-size:clamp(1.6rem,6vw,2.3rem);font-weight:900;letter-spacing:.06em;margin:4px 0 6px}
+.word .n{font-size:1.02rem;margin:0}
+
+h3{font-size:1.2rem;font-weight:700;margin:0 0 12px}
+.evs{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.ev{width:100%;text-align:left;background:var(--bg);border:3px solid var(--line);border-radius:16px;padding:14px 18px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;min-height:64px}
+.ev:hover{border-color:var(--me)}
+.ev[aria-expanded="true"]{border-color:var(--me);background:var(--hl)}
+.ev .yr{font-weight:900;font-size:1.15rem;color:var(--me)}
+.ev .ti{font-weight:700}
+.ev .plus{font-size:1.5rem;font-weight:900;color:var(--soft);line-height:1}
+.ev[aria-expanded="true"] .plus{color:var(--me)}
+.det{border:3px solid var(--hl);border-top:0;border-radius:0 0 16px 16px;margin:-12px 0 0;padding:16px 18px 18px;background:var(--bg)}
+.det p{margin:0}
+.det[hidden]{display:none}
+
+.ask{background:var(--hl);border-radius:16px;padding:18px 20px;margin:24px 0 0}
+.ask b{display:block;margin-bottom:4px}
+
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:3px solid var(--line);
+  padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;justify-content:center}
+.nav button{min-height:62px;border-radius:999px;border:3px solid var(--ink);padding:10px 30px;font-size:1.15rem;font-weight:700;background:var(--card)}
+.nav .go{background:var(--ink);color:var(--bg);flex:1 1 auto;max-width:420px}
+.nav .go:disabled,.nav .back:disabled{opacity:.3;cursor:default}
+.nav .back{flex:0 0 auto}
+
+.big{min-height:74px;width:100%;max-width:420px;margin:26px auto 0;display:block;border-radius:999px;border:0;
+  background:var(--me);color:#241505;font-size:1.3rem;font-weight:900}
+.cover{text-align:center;padding:34px 24px 40px}
+.cover h2{font-size:clamp(2rem,8vw,3.2rem)}
+.cover .lead{max-width:24em;margin:0 auto}
+
+.quiz .q{font-size:1.25rem;font-weight:700;margin:0 0 14px}
+.opts{display:grid;gap:12px;margin:0 0 6px}
+.opt{text-align:left;background:var(--bg);border:3px solid var(--line);border-radius:16px;padding:14px 18px;min-height:62px}
+.opt:hover{border-color:var(--ink)}
+.opt.yes{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--bg))}
+.opt.no{border-color:var(--me);opacity:.75}
+.fb{font-weight:700;margin:12px 0 0;min-height:1.9em}
+.fb.good{color:var(--ok)}
+.recap{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:0 0 20px}
+.rc{background:var(--bg);border:3px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.rc svg text{display:none}
+.rc .rw{font-weight:900;font-size:1.2rem;margin:6px 0 2px}
+.rc .ry{color:var(--soft);font-size:.95rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* AI 小幫手「小燈」 */
+:root{--ai:#2F7568;--aisoft:#E2F0EC}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ai:#7CC3B5;--aisoft:#22332F}}
+:root[data-theme="dark"]{--ai:#7CC3B5;--aisoft:#22332F}
+
+.goals{margin-top:20px}
+.goals h2{font-size:clamp(1.4rem,4.6vw,1.9rem)}
+.goals ol{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:g}
+.goals li{counter-increment:g;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:var(--bg);border-radius:16px;padding:14px 16px}
+.goals li::before{content:counter(g);width:36px;height:36px;border-radius:50%;background:var(--me);color:#241505;font-weight:900;display:grid;place-items:center;font-size:1.05rem}
+.goals li.ai::before{background:var(--ai);color:var(--bg)}
+.goals b{display:block}
+.goals .gl{min-width:0}
+.disc{margin-top:14px;background:var(--card);border:3px solid var(--ai);border-radius:18px;overflow:hidden}
+.disc[hidden]{display:none}
+.dh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:3px solid var(--line)}
+.dh svg{width:34px;height:34px;flex:none}
+.dh b{display:inline;margin:0;font-size:1.05rem}
+.dh span{display:block;font-size:.85rem;color:var(--soft);line-height:1.3}
+.log{padding:14px;display:flex;flex-direction:column;gap:10px;font-size:1.02rem;line-height:1.7;max-height:420px;overflow-y:auto}
+.msg{max-width:90%;padding:10px 14px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.bot{background:var(--aisoft);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--hl);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.err{align-self:flex-start;background:transparent;color:var(--soft);font-size:.9rem;padding:0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 10px}
+.chip{border:2px solid var(--ai);background:var(--card);color:var(--ai);border-radius:999px;padding:4px 14px;font-size:.95rem;font-weight:700;min-height:40px}
+.chip:disabled{opacity:.4;cursor:default}
+.form{display:flex;gap:8px;padding:10px 12px 12px;border-top:3px solid var(--line)}
+.form textarea{flex:1;min-width:0;resize:none;font:inherit;font-size:1rem;line-height:1.5;padding:10px 14px;border:3px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);height:52px}
+.form textarea:focus{border-color:var(--ai);outline:none}
+.form button{border:0;border-radius:16px;padding:0 18px;font-weight:900;min-height:52px;background:var(--ai);color:var(--bg)}
+.form button.stop{background:var(--line);color:var(--ink)}
+.form button[hidden]{display:none}
+.form button:disabled{opacity:.4;cursor:default}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <h1>他們坐在哪裡？</h1>
+    <ul class="dots" id="dots"></ul>
+  </div>
+  <main id="stage" tabindex="-1"></main>
+</div>
+<nav class="nav">
+  <button class="back" id="back">← 上一頁</button>
+  <button class="go" id="go">下一頁 →</button>
+</nav>
+<script>
+const P='var(--them)', O='var(--me)';
+function kid(x,y,c,s){s=s||1;return '<g transform="translate('+x+','+y+') scale('+s+')"><circle cx="0" cy="-16" r="9" fill="'+c+'"/><rect x="-9" y="-5" width="18" height="24" rx="9" fill="'+c+'"/></g>';}
+function wheel(x,y,c){return '<g transform="translate('+x+','+y+')"><circle cx="0" cy="-16" r="9" fill="'+c+'"/><rect x="-9" y="-5" width="18" height="16" rx="7" fill="'+c+'"/><circle cx="0" cy="14" r="10" fill="none" stroke="'+c+'" stroke-width="3.5"/></g>';}
+function house(x,y,w,h,label,dash){
+  return '<g><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10" fill="var(--card)" stroke="var(--line)" stroke-width="4"'+(dash?' stroke-dasharray="10 8"':'')+'/>'+
+   '<path d="M'+(x-10)+' '+y+' L'+(x+w/2)+' '+(y-30)+' L'+(x+w+10)+' '+y+' Z" fill="var(--line)"/>'+
+   (label?'<text x="'+(x+w/2)+'" y="'+(y-42)+'" text-anchor="middle" font-size="17" font-weight="700" fill="var(--soft)">'+label+'</text>':'')+'</g>';
+}
+const SCENES=[
+ function(){return house(360,120,210,120,'一般學校')+kid(400,205,P)+kid(440,205,P)+kid(480,205,P)+kid(520,205,P)+
+   house(40,150,130,90,'特別的學校',1)+kid(80,215,O)+kid(125,215,O)+
+   '<line x1="200" y1="110" x2="200" y2="270" stroke="var(--line)" stroke-width="5" stroke-dasharray="12 12"/>'+
+   '<line x1="260" y1="110" x2="260" y2="270" stroke="var(--line)" stroke-width="5" stroke-dasharray="12 12"/>';},
+ function(){return house(300,120,270,120,'一般學校')+kid(345,205,P)+kid(385,205,P)+kid(425,205,P)+kid(465,205,P)+kid(505,205,P)+
+   house(120,150,140,90,'特別的班級')+kid(160,215,O)+kid(205,215,O)+
+   '<path d="M90 195 L112 195" stroke="var(--me)" stroke-width="5" marker-end="url(#ar)"/>';},
+ function(){return house(90,90,480,160,'')+
+   '<text x="330" y="48" text-anchor="middle" font-size="17" font-weight="700" fill="var(--soft)">同一間學校</text>'+
+   '<rect x="115" y="120" width="150" height="100" rx="10" fill="var(--bg)" stroke="var(--line)" stroke-width="4"/>'+
+   '<text x="190" y="142" text-anchor="middle" font-size="15" font-weight="700" fill="var(--soft)">資源班</text>'+
+   kid(158,190,O)+kid(222,190,O)+kid(330,190,P)+kid(380,190,P)+kid(430,190,P)+kid(480,190,P)+kid(530,190,P);},
+ function(){return house(90,90,480,160,'')+
+   '<text x="330" y="48" text-anchor="middle" font-size="17" font-weight="700" fill="var(--soft)">同一間教室</text>'+
+   '<path d="M120 215 L190 165 L190 215 Z" fill="var(--line)"/>'+
+   kid(240,200,P)+wheel(295,198,O)+kid(350,200,P)+kid(405,200,O)+kid(460,200,P)+kid(515,200,P);}
+];
+function scene(i){return '<svg class="scene" viewBox="0 0 640 300" role="img" aria-label="'+ERAS[i].alt+'">'+
+  '<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L9 5L1 9" fill="var(--me)"/></marker></defs>'+
+  '<line x1="40" y1="258" x2="600" y2="258" stroke="var(--line)" stroke-width="5"/>'+SCENES[i]()+'</svg>';}
+
+const ERAS=[
+ {when:'一百多年前　1891–1961', title:'那時候，他們在很遠的地方上學',
+  lead:'以前，看不見或聽不見的小孩不能去一般的學校。他們要去很遠的、專門的學校，跟其他小孩分開。',
+  alt:'左邊有一間分開的小學校，中間有兩道虛線隔開，右邊是一般學校',
+  cap:'橘色是身心障礙的小孩，藍色是其他小孩。他們被線隔開了。',
+  word:'盲生、啞生', wordNote:'那時候直接用「看不見」「不能說話」來叫他們。',
+  think:'大人覺得：這些小孩好可憐，我們要照顧他們。',
+  evs:[
+   {y:'1891', t:'臺灣第一所盲人學校', d:'一位英國牧師在臺南開了一間學校，教看不見的小孩認點字、算數學、做手工，讓他們長大後能養活自己。這是臺灣特殊教育的開始。'},
+   {y:'1917', t:'臺北也開了一間', d:'臺北設立了教視障和聽障小孩的學校，就是今天臺北啟明學校和啟聰學校的前身。那時候，這種專門的學校是唯一的選擇。'}],
+  ask:'如果你的學校離家裡很遠很遠，遠到要住在學校，你會有什麼感覺？'},
+ {when:'阿公阿嬤小時候　1962–1983', title:'他們搬到學校旁邊了',
+  lead:'一般的學校開始開「特別的班級」，讓身心障礙的小孩也能來。雖然還是坐在不同的教室，但已經在同一個校園裡了。',
+  alt:'特別的班級搬到一般學校旁邊，有箭頭表示靠近',
+  cap:'橘色的小孩靠過來了，但還是在自己的教室。',
+  word:'啟聰、啟明', wordNote:'「啟」是「打開」。大人希望打開他們的耳朵和眼睛。',
+  think:'大人覺得：他們哪裡不好，我們要想辦法治好、補起來。',
+  evs:[
+   {y:'1962', t:'第一個特別的班級', d:'臺北市中山國小開了全臺灣第一個給智能障礙小孩的班級。隔年，屏東仁愛國小也開了給行動不方便的小孩的班級。'},
+   {y:'1966', t:'可以在家附近上學了', d:'政府讓看不見的小孩能去住家附近的一般國小，再請老師到學校教他們點字。不用再離家那麼遠了。'},
+   {y:'1978', t:'資源班出現', d:'學生大部分時間跟大家一起上課，只有需要的時候去「資源班」加強。這種方式一直用到今天。'},
+   {y:'1980', t:'第一部身心障礙的法律', d:'叫做《殘障福利法》。雖然名字用了今天覺得不禮貌的詞，但這是國家第一次用法律照顧身心障礙的人。'}],
+  ask:'跟大家在同一個學校，但在不同的教室上課。你覺得這樣算「在一起」嗎？'},
+ {when:'爸爸媽媽小時候　1984–1996', title:'法律說：他們也有權利上學',
+  lead:'國家訂了法律，寫明身心障礙的小孩一定要能上學，學校不可以拒絕。上學不再是別人的好心，而是每個人本來就有的權利。',
+  alt:'資源班在學校裡面，兩群小孩在同一間學校',
+  cap:'現在資源班在學校裡面了，大家在同一個屋簷下。',
+  word:'殘障', wordNote:'法律用的詞是「殘障」。今天我們不這樣說了，因為這個詞聽起來不太尊重。',
+  think:'大人開始覺得：上學是他們的權利，不是我們的好心。',
+  evs:[
+   {y:'1984', t:'第一部特殊教育法', d:'臺灣第一次用法律保障身心障礙學生上學的權利。從此學校不能隨便拒絕他們，政府也必須提供需要的幫助。'}],
+  ask:'「權利」和「好心」有什麼不一樣？想想看：吃飯是你的權利，還是別人對你好？'},
+ {when:'現在　1997 年到今天', title:'大家坐在同一間教室',
+  lead:'現在，大部分身心障礙的學生和你在同一間教室上課。學校會做斜坡、放大字的課本、請老師幫忙，讓每個人都能一起學習。',
+  alt:'所有小孩在同一間教室，有輪椅的同學和斜坡',
+  cap:'橘色和藍色坐在一起了，學校也做了斜坡。',
+  word:'身心障礙者', wordNote:'把「人」放在前面。他們先是一個人，才是一個有障礙的人。',
+  think:'現在我們覺得：不方便的不是他，是環境。把環境改好，大家都可以一起。',
+  evs:[
+   {y:'1997', t:'改名字了', d:'法律把「殘障」改成「身心障礙者」。同一年特殊教育法也大修，明確規定要讓學生在「最少限制」的環境裡學習，也就是盡量跟大家在一起。'},
+   {y:'2014', t:'跟全世界一起', d:'臺灣把聯合國的《身心障礙者權利公約》變成國內的法律。這份公約說：障礙不是那個人的問題，是環境沒有做好。'},
+   {y:'2023', t:'要聽他們說話', d:'最新的修法規定，學校要聽學生自己的意見，也要為他們做「合理調整」，例如考試多給一點時間、把課本做成有聲書。'}],
+  ask:'你的學校有哪些地方，坐輪椅的同學可能會去不了？可以怎麼改？'}
+];
+const QUIZ=[
+ {q:'一百多年前，身心障礙的小孩在哪裡上學？', o:['很遠的、專門的學校','跟大家同一間教室','沒有學校可以上'], a:0,
+  y:'對！那時候要離開家，去很遠的專門學校。', n:'再想一想～ 回到第一頁看看那張圖。'},
+ {q:'「資源班」是什麼意思？', o:['整天都在裡面上課的班級','大部分跟大家上課，需要時才去加強','老師開會的地方'], a:1,
+  y:'沒錯！大部分時間還是跟同學在一起。', n:'不是喔～ 資源班是「需要的時候才去」的地方。'},
+ {q:'為什麼我們現在說「身心障礙者」，不說「殘障」？', o:['因為比較長','因為法律規定不能講話','因為要把「人」放在前面，比較尊重'], a:2,
+  y:'答對了！他先是一個人，才是一個有障礙的人。', n:'再想想看～ 差別在「怎麼看這個人」。'},
+ {q:'現在我們覺得，讓人不方便的主要是什麼？', o:['他自己的身體','沒做好的環境','他的家人'], a:1,
+  y:'對！沒有斜坡才是問題，不是坐輪椅的人有問題。', n:'再想一想～ 如果有斜坡，坐輪椅還會不方便嗎？'}
+];
+const N=ERAS.length+3, stage=document.getElementById('stage'), dotsEl=document.getElementById('dots'),
+      goEl=document.getElementById('go'), backEl=document.getElementById('back');
+let page=0, answered={};
+function dots(){
+  dotsEl.innerHTML=Array.from({length:N},function(_,i){
+    return '<li><button data-p="'+i+'" aria-current="'+(i===page)+'" class="'+(i<page?'done':'')+'" aria-label="第 '+(i+1)+' 頁"></button></li>';}).join('');
+}
+function draw(){
+  var h='';
+  if(page===0){
+    h='<section class="card cover"><h2>他們坐在哪裡？</h2>'+
+      '<p class="lead">一百多年來，看不見、聽不見、或學習比較慢的同學，從很遠的地方，一步一步走進我們的教室。<br>一起看看這段路怎麼走的。</p>'+
+      scene(0)+'<button class="big" id="start">開始看故事</button></section>'+
+      '<section class="card goals"><h2>這個程式的目標</h2><p class="lead" style="margin-bottom:12px">看完這個故事，希望你可以：</p><ol>'+
+      '<li><div class="gl"><b>看懂一百多年的改變</b>知道身心障礙的同學，怎麼從「被分開上學」走到「和大家坐在同一間教室」。</div></li>'+
+      '<li><div class="gl"><b>說出尊重的話</b>明白叫法為什麼一直改，學會把「人」放在前面。</div></li>'+
+      '<li><div class="gl"><b>換一個角度想</b>了解讓人不方便的，常常是沒做好的環境，不是那個人。</div></li>'+
+      '<li><div class="gl"><b>看看自己的學校</b>找找哪裡對每個同學還不夠友善，想想可以怎麼改。</div></li>'+
+      '<li class="ai"><div class="gl"><b>和 AI 小幫手一起討論</b>每個年代的「想一想」，都可以和小燈聊。說出你的想法，小燈會先找出你想得好的地方，再問你一個小問題，陪你想得更深。</div></li>'+
+      '</ol></section>';
+  } else if(page<=ERAS.length){
+    var e=ERAS[page-1], i=page-1;
+    h='<section class="card"><span class="when">'+e.when+'</span><h2>'+e.title+'</h2><p class="lead">'+e.lead+'</p>'+
+      scene(i)+'<p class="cap">'+e.cap+'</p>'+
+      '<div class="word"><div class="t">那時候大家這樣叫他們</div><div class="w">'+e.word+'</div><p class="n">'+e.wordNote+'</p></div>'+
+      '<div class="word" style="border-style:solid"><div class="t">那時候大家心裡怎麼想</div><p class="n" style="font-size:1.15rem;font-weight:700;margin-top:6px">'+e.think+'</p></div>'+
+      '<h3>那時候發生了什麼事？（點一下看故事）</h3><ul class="evs">'+
+      e.evs.map(function(v,k){return '<li><button class="ev" data-ev="'+k+'" aria-expanded="false" aria-controls="d'+k+'">'+
+        '<span class="yr">'+v.y+'</span><span class="ti">'+v.t+'</span><span class="plus" aria-hidden="true">＋</span></button>'+
+        '<div class="det" id="d'+k+'" hidden><p>'+v.d+'</p></div></li>';}).join('')+
+      '</ul><div class="ask"><b>想一想</b>'+e.ask+'<div class="disc" id="disc"'+(AI.on?'':' hidden')+'><div class="dh"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="var(--aisoft)"/><rect x="9" y="12" width="22" height="18" rx="7" fill="var(--ai)"/><circle cx="15.5" cy="20.5" r="2.6" fill="var(--card)"/><circle cx="24.5" cy="20.5" r="2.6" fill="var(--card)"/><path d="M16 26 Q20 28.5 24 26" stroke="var(--card)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="20" y1="12" x2="20" y2="7" stroke="var(--ai)" stroke-width="2.4"/><circle cx="20" cy="6" r="2.6" fill="var(--me)"/></svg><div><b>和 AI 小幫手小燈討論</b><span>這題沒有標準答案，說說你的想法吧</span></div></div>'+'<div class="log" id="log" aria-live="polite"></div><div class="chips" id="chips"></div>'+'<form class="form" id="form"><label for="q" style="position:absolute;left:-9999px">我的想法</label>'+'<textarea id="q" placeholder="寫下你的想法…" maxlength="300"></textarea>'+'<button type="submit" id="send">送出</button><button type="button" class="stop" id="stop" hidden>停</button></form></div>'+'</div></section>';
+  } else if(page===ERAS.length+1){
+    h='<section class="card"><h2>一起看一次</h2><p class="lead">一百多年來，叫法變了，位置也變了。</p><div class="recap">'+
+      ERAS.map(function(e,i){return '<div class="rc"><svg viewBox="0 0 640 300" style="width:100%;height:auto">'+
+        '<line x1="40" y1="258" x2="600" y2="258" stroke="var(--line)" stroke-width="5"/>'+SCENES[i]()+'</svg>'+
+        '<div class="rw">'+e.word+'</div><div class="ry">'+e.when.split('　')[1]+'</div></div>';}).join('')+
+      '</div><div class="ask"><b>最重要的一句話</b>他們從「被分開」走到「在一起」。改變的不是他們，是我們怎麼看他們、還有我們把環境做成什麼樣子。</div></section>';
+  } else {
+    h='<section class="card quiz"><h2>小考驗</h2><p class="lead">四題，答錯也沒關係，可以再選一次。</p>'+
+      QUIZ.map(function(q,qi){return '<div style="margin-bottom:26px"><p class="q">'+(qi+1)+'. '+q.q+'</p><div class="opts">'+
+        q.o.map(function(o,oi){return '<button class="opt" data-q="'+qi+'" data-o="'+oi+'">'+o+'</button>';}).join('')+
+        '</div><p class="fb" id="fb'+qi+'"></p></div>';}).join('')+
+      '<div class="ask"><b>做得好！</b>想再看一次哪個年代，點上面的圓點就可以跳過去。</div></section>';
+  }
+  stage.innerHTML=h; dots();
+  backEl.disabled = page===0; goEl.disabled = page===N-1;
+  goEl.textContent = page===0 ? '開始 →' : (page===N-1 ? '已經是最後一頁' : '下一頁 →');
+  window.scrollTo(0,0); stage.focus({preventScroll:true});
+  Object.keys(answered).forEach(function(k){
+    var m=answered[k]; if(!m) return;
+    var box=stage.querySelector('#fb'+k); if(!box) return;
+    box.textContent=m.msg; box.className='fb'+(m.ok?' good':'');
+    stage.querySelectorAll('[data-q="'+k+'"]').forEach(function(b){
+      if(+b.dataset.o===m.pick) b.classList.add(m.ok?'yes':'no'); });
+  });
+}
+function goTo(p){ if(typeof AI!=="undefined") AI.leave(); page=Math.max(0,Math.min(N-1,p)); draw(); if(typeof AI!=="undefined") AI.mount(); }
+goEl.onclick=function(){goTo(page+1)}; backEl.onclick=function(){goTo(page-1)};
+dotsEl.onclick=function(e){var b=e.target.closest('[data-p]'); if(b) goTo(+b.dataset.p);};
+stage.addEventListener('click',function(e){
+  if(e.target.closest('#start')) return goTo(1);
+  var ev=e.target.closest('[data-ev]');
+  if(ev){ var open=ev.getAttribute('aria-expanded')==='true';
+    ev.setAttribute('aria-expanded',!open);
+    ev.querySelector('.plus').textContent=open?'＋':'－';
+    document.getElementById(ev.getAttribute('aria-controls')).hidden=open; return; }
+  var op=e.target.closest('[data-o]');
+  if(op){ var qi=+op.dataset.q, oi=+op.dataset.o, q=QUIZ[qi], ok=oi===q.a;
+    answered[qi]={pick:oi,ok:ok,msg:ok?q.y:q.n};
+    stage.querySelectorAll('[data-q="'+qi+'"]').forEach(function(b){b.classList.remove('yes','no');});
+    op.classList.add(ok?'yes':'no');
+    var fb=document.getElementById('fb'+qi); fb.textContent=answered[qi].msg; fb.className='fb'+(ok?' good':''); }
+});
+document.addEventListener('keydown',function(e){
+  if(e.target.matches('input,textarea')) return;
+  if(e.key==='ArrowRight') goTo(page+1);
+  if(e.key==='ArrowLeft') goTo(page-1);
+});
+
+/* ===== AI 小幫手「小燈」：在「想一想」陪學生討論 ===== */
+var AI=(function(){
+  var api={on:false}, sample=null, busy=false, ctl=null, era=-1;
+  var chats=ERAS.map(function(){return [];});           // 每個年代各自一段討論 [{role,text}]
+  var HELLO='嗨，我是小燈！這題沒有標準答案。你先寫下自己的想法，我們一起聊聊。';
+  var STORY=ERAS.map(function(e,i){return '第'+(i+1)+'個年代｜'+e.when+'｜'+e.title+'\n'+e.lead+'\n當時的叫法：'+e.word+'（'+e.wordNote+'）\n當時的想法：'+e.think+'\n事件：'+
+    e.evs.map(function(v){return v.y+' '+v.t+'：'+v.d;}).join('；');}).join('\n\n');
+  var GLOSS='詞語小字典：\n身心障礙：身體或大腦的某些功能，例如看、聽、說話、走路、學習或控制情緒，和大部分人不太一樣，在生活或上學時需要一些幫忙或調整。例如看不見的人用點字讀書、坐輪椅的人需要斜坡。身心障礙不是生病，也不是做錯事。\n點字：用手指摸紙上凸起的小點來讀的文字。\n資源班：學生大部分時間和全班一起上課，需要時才到資源班，由特教老師幫忙加強。\n合理調整：依照每個人的需要改變做法，例如考試多給時間、把課本做成有聲書。\n權利：每個人本來就應該有的，不是別人給的好心。';
+  function rules(i){ return '你是「小燈」，陪國小學生（大約 8 到 12 歲）討論的 AI 小幫手。學生正在讀互動故事《他們坐在哪裡？》，講臺灣一百多年來，身心障礙學生從被分開上學，到和大家坐在同一間教室的過程。\n\n'+
+    '現在學生在「'+ERAS[i].when+'｜'+ERAS[i].title+'」這一頁，討論的「想一想」題目是：\n「'+ERAS[i].ask+'」\n\n'+
+    '討論的方式：\n1. 只用繁體中文，句子短、字簡單，像溫柔的大哥哥大姊姊。每次 2 到 3 句，不用列點、不用 Markdown 符號。\n'+
+    '2. 接下來每則「學生寫的話」才是學生自己說的。題目裡的句子和例子（例如題目中的吃飯）是題目的，不是學生想到的，不要說成是學生的。\n'+
+    '3. 仔細讀學生寫的話，先判斷他是在回答、在提問、還是說不知道。如果他在回答，用他自己的關鍵詞具體稱讚他說得好的地方，不要說他「提出問題」。\n'+
+    '4. 這題沒有標準答案，不要說學生錯。稱讚之後，只問一個能讓他再往前想一步的小追問；不要問他已經回答過的事，也不要自己先講一大段道理或替他說出答案。\n'+
+    '5. 可以把學生的想法和這一頁的故事連起來，例如「你說的就像 1978 年的資源班…」。\n'+
+    '6. 學生說不知道、或請你給提示時，給一個生活裡的小例子或從另一個角度問他，不要直接替他回答。\n'+
+    '7. 聊了三、四輪之後，用一兩句話幫他整理他自己說過的想法，並稱讚他的思考。\n'+
+    '8. 學生問詞語的意思時，先直接回答，再帶回題目。歷史事件、年份、法律只能根據故事內容說，故事裡沒有的就說「這個故事裡沒有寫到，可以問問老師喔」。\n'+
+    '9. 用尊重的說法：說「身心障礙者」「坐輪椅的同學」。只有在解釋歷史時才提到舊說法。\n'+
+    '10. 不要問學生的名字、學校、住址等個人資料。如果學生說到自己被欺負或很難過，先溫柔地接住他的感受，再請他告訴信任的大人，例如老師或家人。\n'+
+    '11. 學生聊到和題目無關的事，簡短回應後，輕輕帶回題目。\n\n'+GLOSS+'\n\n故事內容：\n'+STORY; }
+  var COPY={rate_limited:'小燈現在有點忙，等一下再送出一次好嗎？',session_expired:'要請大人幫忙重新登入，小燈才能回答。',
+    refused:'這句話小燈沒辦法回答，換個方式說說看？',empty_completion:'小燈沒想出回答，換個說法試試看。'};
+  function $(id){ return stage.querySelector('#'+id); }
+  function bubble(m){ var d=document.createElement('div'); d.className='msg '+(m.role==='user'?'me':m.role==='err'?'err':'bot'); d.textContent=m.text; return d; }
+  function render(){
+    var log=$('log'); if(!log) return;
+    log.innerHTML=''; log.appendChild(bubble({role:'bot',text:HELLO}));
+    chats[era].forEach(function(m){ var d=bubble(m); m.el=d; log.appendChild(d); });
+    log.scrollTop=log.scrollHeight;
+    var chips=$('chips'); chips.innerHTML='';
+    var c = chats[era].length ? ['給我一點提示','幫我整理我的想法'] : ['我不知道怎麼想','給我一點提示'];
+    c.forEach(function(t){ var b=document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=t; b.disabled=busy;
+      b.onclick=function(){ send(t); }; chips.appendChild(b); });
+    $('send').hidden=busy; $('stop').hidden=!busy; $('q').disabled=busy;
+  }
+  function push(m){ chats[era].push(m); var log=$('log'); if(log){ var d=bubble(m); m.el=d; log.appendChild(d); log.scrollTop=log.scrollHeight; } return m; }
+  async function send(text){
+    text=(text||'').trim(); if(!text||busy||era<0) return;
+    var i=era, list=chats[i];
+    list.push({role:'user',text:text}); $('q').value='';
+    var turns=list.filter(function(m){return m.role!=='err';}).slice(-12)
+      .map(function(m){return m.role==='user' ? {role:'user',content:'學生寫的話：「'+m.text+'」'} : {role:'assistant',content:m.text};});
+    while(turns.length&&turns[0].role!=='user') turns.shift();
+    var reply={role:'assistant',text:'小燈想一想…'}; list.push(reply);
+    busy=true; render(); ctl=new AbortController();
+    try{
+      var r=await sample([{role:'user',content:rules(i)},{role:'assistant',content:HELLO}].concat(turns),{signal:ctl.signal,modelTier:'quick',cache:false,
+        onText:function(u){ reply.text=u.text.trim(); if(reply.el){ reply.el.textContent=reply.text; var lg=$('log'); if(lg) lg.scrollTop=lg.scrollHeight; } }});
+      reply.text=r.text.trim();
+    }catch(e){
+      var code=e&&e.code, keep=e&&e.text?e.text.trim():'';
+      if(keep) reply.text=keep; else list.splice(list.indexOf(reply),1);
+      if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].indexOf(code)>=0){
+        api.on=false; var d=$('disc'); if(d&&era===i) d.hidden=true; busy=false; return; }
+      if(code!=='cancelled') list.push({role:'err',text:COPY[code]||'小燈剛剛斷線了，再送出一次試試看。'});
+    }finally{ busy=false; if(era===i){ render(); var q=$('q'); if(q) q.focus(); } }
+  }
+  api.mount=function(){
+    era = page>=1&&page<=ERAS.length ? page-1 : -1;
+    if(era<0||!api.on) return;
+    $('disc').hidden=false; render();
+    $('form').addEventListener('submit',function(e){ e.preventDefault(); send($('q').value); });
+    $('q').addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); send(e.target.value); } });
+    $('stop').onclick=function(){ if(ctl) ctl.abort(); };
+  };
+  api.leave=function(){ if(busy&&ctl) ctl.abort(); };
+  (async function(){
+    try{ sample = window.claude&&window.claude.use ? await window.claude.use('sample') : null; }catch(e){ sample=null; }
+    if(!sample) return;
+    api.on=true; api.mount();
+  })();
+  return api;
+})();
+draw();
+</script>
+</body>
+</html>
