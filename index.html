@@ -303,7 +303,7 @@ document.addEventListener('keydown',function(e){
 
 /* ===== AI 小幫手「小燈」：在「想一想」陪學生討論 ===== */
 /* 放上 GitHub Pages 時，小燈透過這個後端（Cloudflare Worker）呼叫 Claude API。部署好 Worker 後把網址貼在這裡。 */
-var AI_ENDPOINT='';
+var AI_ENDPOINT='https://where-they-sit-ai.chiaying999wen.workers.dev/';
 var AI=(function(){
   var api={on:false}, sample=null, busy=false, ctl=null, era=-1;
   var chats=ERAS.map(function(){return [];});           // 每個年代各自一段討論 [{role,text}]

@@ -44,7 +44,7 @@
 2. 到 [Cloudflare](https://dash.cloudflare.com) 註冊免費帳號，進入 **Workers & Pages → Create → Create Worker**，取名 `where-they-sit-ai`，按 **Deploy**。
 3. 按 **Edit code**，把 `worker.js` 的全部內容貼上，取代原本的程式，按 **Deploy**。
 4. 回到 Worker 頁面，進入 **Settings → Variables and Secrets → Add**，類型選 **Secret**，名稱填 `ANTHROPIC_API_KEY`，值貼上你的 API 金鑰，儲存。
-5. 複製 Worker 的網址（像 `https://where-they-sit-ai.你的帳號.workers.dev`），貼到 `index.html` 裡的 `var AI_ENDPOINT='';` 引號中間。
+5. 複製 Worker 的網址（像 `https://where-they-sit-ai.你的帳號.workers.dev`），貼到 `index.html` 裡的 `var AI_ENDPOINT` 引號中間（目前已設定好）。
 6. 確認 `worker.js` 裡的 `ALLOWED_ORIGINS` 是你的 GitHub Pages 網址（預設是 `https://chiaying1230.github.io`）。
 
 保護措施：Worker 只接受來自你網站的請求、限制每則訊息長度和回答長度，小燈的說明書也放在後端，別人無法把它當成一般聊天機器人使用。建議在 Claude Console 不要開自動儲值，額度用完就會自動停止。
