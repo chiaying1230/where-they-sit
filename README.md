@@ -31,7 +31,23 @@
 - 歷史事件、年份、法律只根據故事內容說，不自己編。
 - 不詢問學生個人資料；學生提到被欺負或難過時，會請他告訴信任的大人。
 
-小燈使用 Claude Artifact 的 `sample` 功能，只有在 claude.ai 上開啟頁面時才能使用，並會用開啟者自己的 Claude 額度。直接用瀏覽器或 GitHub Pages 開啟 `index.html` 時，小燈會自動隱藏，故事、圖片和小考驗都可以照常使用。
+小燈有兩種運作方式：
+
+- **在 claude.ai 上開啟**：使用 Claude Artifact 的 `sample` 功能，用開啟者自己的 Claude 額度。
+- **在 GitHub Pages 上開啟**：透過 `worker.js`（Cloudflare Worker）呼叫 Claude API（Claude Haiku 4.5）。API 金鑰只存在 Cloudflare，不會出現在網頁或 GitHub 上。
+
+如果兩者都沒有設定，小燈會自動隱藏，故事、圖片和小考驗都可以照常使用。
+
+## 設定小燈的後端（Cloudflare Worker）
+
+1. 在 [Claude Console](https://platform.claude.com) 購買 API 額度，並建立一把 API 金鑰。
+2. 到 [Cloudflare](https://dash.cloudflare.com) 註冊免費帳號，進入 **Workers & Pages → Create → Create Worker**，取名 `where-they-sit-ai`，按 **Deploy**。
+3. 按 **Edit code**，把 `worker.js` 的全部內容貼上，取代原本的程式，按 **Deploy**。
+4. 回到 Worker 頁面，進入 **Settings → Variables and Secrets → Add**，類型選 **Secret**，名稱填 `ANTHROPIC_API_KEY`，值貼上你的 API 金鑰，儲存。
+5. 複製 Worker 的網址（像 `https://where-they-sit-ai.你的帳號.workers.dev`），貼到 `index.html` 裡的 `var AI_ENDPOINT='';` 引號中間。
+6. 確認 `worker.js` 裡的 `ALLOWED_ORIGINS` 是你的 GitHub Pages 網址（預設是 `https://chiaying1230.github.io`）。
+
+保護措施：Worker 只接受來自你網站的請求、限制每則訊息長度和回答長度，小燈的說明書也放在後端，別人無法把它當成一般聊天機器人使用。建議在 Claude Console 不要開自動儲值，額度用完就會自動停止。
 
 ## 使用方式
 

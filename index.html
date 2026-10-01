@@ -302,6 +302,8 @@ document.addEventListener('keydown',function(e){
 });
 
 /* ===== AI 小幫手「小燈」：在「想一想」陪學生討論 ===== */
+/* 放上 GitHub Pages 時，小燈透過這個後端（Cloudflare Worker）呼叫 Claude API。部署好 Worker 後把網址貼在這裡。 */
+var AI_ENDPOINT='';
 var AI=(function(){
   var api={on:false}, sample=null, busy=false, ctl=null, era=-1;
   var chats=ERAS.map(function(){return [];});           // 每個年代各自一段討論 [{role,text}]
@@ -342,15 +344,12 @@ var AI=(function(){
     text=(text||'').trim(); if(!text||busy||era<0) return;
     var i=era, list=chats[i];
     list.push({role:'user',text:text}); $('q').value='';
-    var turns=list.filter(function(m){return m.role!=='err';}).slice(-12)
-      .map(function(m){return m.role==='user' ? {role:'user',content:'學生寫的話：「'+m.text+'」'} : {role:'assistant',content:m.text};});
-    while(turns.length&&turns[0].role!=='user') turns.shift();
+    var hist=list.filter(function(m){return m.role!=='err';}).slice(-12).map(function(m){return {role:m.role==='user'?'user':'assistant',content:m.text};});
+    while(hist.length&&hist[0].role!=='user') hist.shift();
     var reply={role:'assistant',text:'小燈想一想…'}; list.push(reply);
     busy=true; render(); ctl=new AbortController();
     try{
-      var r=await sample([{role:'user',content:rules(i)},{role:'assistant',content:HELLO}].concat(turns),{signal:ctl.signal,modelTier:'quick',cache:false,
-        onText:function(u){ reply.text=u.text.trim(); if(reply.el){ reply.el.textContent=reply.text; var lg=$('log'); if(lg) lg.scrollTop=lg.scrollHeight; } }});
-      reply.text=r.text.trim();
+      reply.text=await callAI(i,hist,ctl.signal,function(t){ reply.text=t; if(reply.el){ reply.el.textContent=t; var lg=$('log'); if(lg) lg.scrollTop=lg.scrollHeight; } });
     }catch(e){
       var code=e&&e.code, keep=e&&e.text?e.text.trim():'';
       if(keep) reply.text=keep; else list.splice(list.indexOf(reply),1);
@@ -358,6 +357,20 @@ var AI=(function(){
         api.on=false; var d=$('disc'); if(d&&era===i) d.hidden=true; busy=false; return; }
       if(code!=='cancelled') list.push({role:'err',text:COPY[code]||'小燈剛剛斷線了，再送出一次試試看。'});
     }finally{ busy=false; if(era===i){ render(); var q=$('q'); if(q) q.focus(); } }
+  }
+  async function callAI(i,hist,signal,show){
+    if(sample){
+      var turns=hist.map(function(m){return m.role==='user' ? {role:'user',content:'學生寫的話：「'+m.content+'」'} : m;});
+      var r=await sample([{role:'user',content:rules(i)},{role:'assistant',content:HELLO}].concat(turns),{signal:signal,modelTier:'quick',cache:false,
+        onText:function(u){ show(u.text.trim()); }});
+      return r.text.trim();
+    }
+    var res;
+    try{ res=await fetch(AI_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({era:i,messages:hist}),signal:signal}); }
+    catch(e){ throw {code: e&&e.name==='AbortError' ? 'cancelled' : 'upstream_error'}; }
+    if(!res.ok) throw {code: res.status===429 ? 'rate_limited' : 'upstream_error'};
+    var data=await res.json(); if(!data||!data.text) throw {code:'empty_completion'};
+    show(data.text.trim()); return data.text.trim();
   }
   api.mount=function(){
     era = page>=1&&page<=ERAS.length ? page-1 : -1;
@@ -370,7 +383,7 @@ var AI=(function(){
   api.leave=function(){ if(busy&&ctl) ctl.abort(); };
   (async function(){
     try{ sample = window.claude&&window.claude.use ? await window.claude.use('sample') : null; }catch(e){ sample=null; }
-    if(!sample) return;
+    if(!sample && !AI_ENDPOINT) return;
     api.on=true; api.mount();
   })();
   return api;
