@@ -190,7 +190,7 @@ figcaption{display:flex;flex-wrap:wrap;align-items:center;gap:.1em .9em;padding-
 .cover figcaption{justify-content:center}
 .cta{min-height:max(48px,2.9em);width:100%;max-width:21em;padding:0 1.2em;border:0;border-radius:999px;background:var(--o);color:var(--cta-ink);font-size:1.2em}
 .cta:hover,.navs button:not(:disabled):hover,.chip:not(:disabled):hover,.form button:hover{filter:brightness(1.06)}
-.goals{display:flex;flex-direction:column;gap:.5em}
+.goals{display:flex;flex-direction:column;justify-content:center;gap:.7em}
 .goals h2{font-size:1.4em}
 .gl{font-size:.9em;color:var(--soft)}
 .goals ol{display:grid;gap:.5em;counter-reset:g}
@@ -343,11 +343,11 @@ const QUIZ=[
   y:'對！沒有斜坡才是問題，不是坐輪椅的人有問題。', n:'再想一想～ 如果有斜坡，坐輪椅還會不方便嗎？'}
 ];
 const GOALS=[
- ['看懂一百多年的改變','知道身心障礙的同學，怎麼從「被分開上學」走到「和大家坐在同一間教室」。'],
- ['說出尊重的話','明白叫法為什麼一直改，學會把「人」放在前面。'],
- ['換一個角度想','了解讓人不方便的，常常是沒做好的環境，不是那個人。'],
- ['看看自己的學校','找找哪裡對每個同學還不夠友善，想想可以怎麼改。'],
- ['和 AI 小幫手一起討論','每個年代的「想一想」，都可以和小燈聊。說出你的想法，小燈會先找出你想得好的地方，再問你一個小問題，陪你想得更深。']];
+ ['看懂改變','從「分開上學」到「坐在同一間教室」。'],
+ ['說尊重的話','把「人」放在前面。'],
+ ['換個角度想','不方便的常常是環境，不是人。'],
+ ['看看我的學校','哪裡可以改得更友善？'],
+ ['和小燈討論','說出想法，小燈陪你想更深。']];
 
 /* ===== 場景圖：橘色（身心障礙的同學）和藍色（其他同學）坐在哪裡 =====
    四個年代共用同一張畫布和同一群小孩，翻頁時小孩會從上一個位置走到新的位置。 */
@@ -455,47 +455,47 @@ function sceneOf(p){ return p===0?0:p<=ERAS.length?p-1:-1; }
 
 function coverHTML(){
   return {L:'<section class="card cover" data-fit><h2 class="disp">他們坐在哪裡？</h2>'+
-    '<p class="lead">一百多年來，看不見、聽不見、或學習比較慢的同學，從很遠的地方，一步一步走進我們的教室。一起看看這段路怎麼走的。</p>'+
+    '<p class="lead">身心障礙的同學，怎麼從很遠的地方，走進我們的教室？</p>'+
     '<figure class="pic"><div class="frame">'+sceneSVG(0,ERAS[0].alt)+'</div><figcaption>'+LEGEND+'</figcaption></figure>'+
     '<button class="cta disp" id="start">開始看故事 →</button></section>',
-   R:'<section class="card goals" data-fit><h2 class="disp">這個程式的目標</h2><p class="gl">看完這個故事，希望你可以：</p><ol>'+
+   R:'<section class="card goals" data-fit><h2 class="disp">看完你會</h2><ol>'+
     GOALS.map(function(g,k){return '<li'+(k===4?' class="ai"':'')+'><div><b>'+g[0]+'</b>'+g[1]+'</div></li>';}).join('')+'</ol></section>'};
 }
 function eraHTML(i,forProbe){
   var e=ERAS[i], w=e.when.split('　'), sel=evSel[i];
   var L='<section class="card era" data-fit><header class="eh"><p class="when"><b>'+w[0]+'</b><span>'+w[1]+'</span></p><h2 class="disp">'+e.title+'</h2><p class="lead">'+e.lead+'</p></header>'+
-    '<div class="mid"><figure class="pic"><div class="frame">'+sceneSVG(i,e.alt)+'</div><figcaption>'+LEGEND+'<span class="cap">'+e.cap+'</span></figcaption></figure>'+
-    '<div class="facts"><div class="fact"><p class="ft">那時候大家這樣叫他們</p><p class="word disp">'+e.word+'</p><p class="fn">'+e.wordNote+'</p></div>'+
-    '<div class="fact mind"><p class="ft">那時候大家心裡怎麼想</p><p class="think">'+e.think+'</p></div></div></div>'+
-    '<div class="evs"><h3>那時候發生了什麼事？點年份看故事</h3><div class="evbar">'+
+    '<div class="mid"><figure class="pic"><div class="frame">'+sceneSVG(i,e.alt)+'</div><figcaption>'+LEGEND+'</figcaption></figure>'+
+    '<div class="facts"><div class="fact"><p class="ft">當時的叫法</p><p class="word disp">'+e.word+'</p><p class="fn">'+e.wordNote+'</p></div>'+
+    '<div class="fact mind"><p class="ft">當時的想法</p><p class="think">'+e.think+'</p></div></div></div>'+
+    '<div class="evs"><h3>點年份，看發生什麼事</h3><div class="evbar">'+
     e.evs.map(function(v,k){return '<button class="ev" data-ev="'+k+'" aria-pressed="'+(k===sel)+'"><b class="disp">'+v.y+'</b><span>'+v.t+'</span></button>';}).join('')+'</div>'+
     '<div class="dets">'+e.evs.map(function(v,k){return '<p class="det" data-d="'+k+'"'+(k===sel?'':' aria-hidden="true"')+'><b class="disp">'+v.y+'</b>'+v.d+'</p>';}).join('')+'</div></div></section>';
   var R='<section class="card talk" data-fit><div class="ask"><span class="al">想一想</span><p>'+e.ask+'</p></div>'+
-    '<div class="disc" id="disc"'+(forProbe?'':' hidden')+'><div class="th">'+BOT+'<div><p class="tt">和 AI 小幫手小燈討論</p><p class="ts">小燈是 AI，有時候會說錯。覺得怪怪的，可以問老師。</p></div></div>'+
-    '<p class="rec" id="rec"'+(forProbe&&AI_ENDPOINT?'':' hidden')+'>'+(forProbe?'你的代號：ABC234。你和小燈的對話會被老師看到，用來改進教學，不會記錄你的名字。':'')+'</p>'+
+    '<div class="disc" id="disc"'+(forProbe?'':' hidden')+'><div class="th">'+BOT+'<div><p class="tt">AI 小幫手：小燈</p><p class="ts">小燈可能會說錯，有疑問就問老師。</p></div></div>'+
+    '<p class="rec" id="rec"'+(forProbe&&AI_ENDPOINT?'':' hidden')+'>'+(forProbe?'代號 ABC234。老師看得到對話，不會記名字。':'')+'</p>'+
     '<div class="log" id="log" role="log" aria-label="和小燈的對話"></div><div class="chips" id="chips">'+
     (forProbe?CHIPS1.concat([NEXTCHIP]).map(function(t){return '<button class="chip">'+t+'</button>';}).join(''):'')+'</div>'+
     '<form class="form" id="form"><label class="sr" for="q">我的想法</label><textarea id="q" rows="1" maxlength="300" placeholder="寫下你的想法…" enterkeyhint="send"></textarea>'+
     '<button type="submit" id="send">送出</button><button type="button" class="stop" id="stop" hidden>停</button></form></div>'+
     '<p class="wait" id="wait"'+(forProbe?' hidden':'')+'>小燈準備中 <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></p>'+
-    '<div class="alone" id="offline" hidden><p>先自己想一想，再和旁邊的同學說說看。</p><p class="tip">可以這樣開始：<b>我覺得……</b>、<b>因為……</b>、<b>如果是我，我會……</b></p></div></section>';
+    '<div class="alone" id="offline" hidden><p>先自己想，再和同學說說看。</p><p class="tip"><b>我覺得……因為……</b></p></div></section>';
   return {L:L,R:R};
 }
 function recapHTML(){
-  var heads=['','他們坐在哪裡','大家怎麼叫他們','大家心裡怎麼想'];
-  return {solo:true, L:'<section class="card recap" data-fit><header><h2 class="disp">一起看一次</h2><p class="lead">一百多年來，位置變了，叫法變了，想法也變了。</p></header>'+
+  var heads=['','坐在哪裡','叫法','想法'];
+  return {solo:true, L:'<section class="card recap" data-fit><header><h2 class="disp">一起看一次</h2><p class="lead">位置、叫法、想法都變了。</p></header>'+
     '<ol class="rt">'+heads.map(function(t,r){return t?'<li class="rhd" aria-hidden="true" style="--r:'+(r+1)+'">'+t+'</li>':'';}).join('')+
     ERAS.map(function(e,i){ var w=e.when.split('　'), c=' style="--c:'+(i+2)+';--r:';
       return '<li><button class="rgo" data-p="'+(i+1)+'"'+c+'1" aria-label="'+w[0]+'，'+w[1]+'，再看一次這一頁"><b>'+w[0]+'</b><span>'+w[1]+'</span></button>'+
         '<div class="rframe"'+c+'2">'+sceneSVG(i,e.alt)+'</div>'+
-        '<p class="rw disp"'+c+'3"><span><span class="rl">大家這樣叫他們</span>'+e.word+'</span></p>'+
-        '<p class="rk"'+c+'4"><span><span class="rl">大家心裡這樣想</span>'+e.short+'</span></p></li>'; }).join('')+'</ol>'+
+        '<p class="rw disp"'+c+'3"><span><span class="rl">叫法</span>'+e.word+'</span></p>'+
+        '<p class="rk"'+c+'4"><span><span class="rl">想法</span>'+e.short+'</span></p></li>'; }).join('')+'</ol>'+
     '<div class="keybox"><p class="keyline disp">他們從「被分開」走到「在一起」。</p>'+
-    '<p class="keysub">改變的不是他們，是我們怎麼看他們、還有我們把環境做成什麼樣子。</p>'+
-    '<p class="keyhint">想再看一次哪個年代，點那個年代的名字就可以跳過去。</p></div></section>', R:''};
+    '<p class="keysub">改變的不是他們，是我們的想法和環境。</p>'+
+    '</div></section>', R:''};
 }
 function quizHTML(forProbe){
-  return {solo:true, L:'<section class="card quiz" data-fit><header class="qh"><div><h2 class="disp">小考驗</h2><p class="lead">四題，答錯也沒關係，可以再選一次。</p></div>'+
+  return {solo:true, L:'<section class="card quiz" data-fit><header class="qh"><div><h2 class="disp">小考驗</h2><p class="lead">答錯可以再選一次。</p></div>'+
     '<p class="score" id="score" aria-live="polite">'+(forProbe?ALLRIGHT:'')+'</p></header><ol class="qgrid">'+
     QUIZ.map(function(q,qi){return '<li class="qb"><p class="q"><span class="qn disp">'+(qi+1)+'</span><span>'+q.q+'</span></p><div class="opts">'+
       q.o.map(function(o,oi){return '<button class="opt" data-q="'+qi+'" data-o="'+oi+'" aria-pressed="false">'+MARK+'<span>'+o+'</span></button>';}).join('')+'</div>'+
@@ -785,7 +785,7 @@ var AI=(function(){
     if(era<0) return;
     show(); if(api.state!=='on') return;
     var note=$('rec'), q=$('q');
-    note.hidden = !!sample; note.textContent='你的代號：'+SID+'。你和小燈的對話會被老師看到，用來改進教學，不會記錄你的名字。';
+    note.hidden = !!sample; note.textContent='代號 '+SID+'。老師看得到對話，不會記名字。';
     q.value=drafts[era]; render(); grow(q);
     $('form').addEventListener('submit',function(e){ e.preventDefault(); send(q.value); });
     q.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){ e.preventDefault(); send(q.value); } });
